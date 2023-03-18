@@ -1,9 +1,9 @@
-import { useState, useContext } from 'react';
-import styled from 'styled-components';
+import { useState, useContext } from "react";
+import styled from "styled-components";
 
-import add from './add.png';
-import minus from './minus.png';
-import { CartContext } from '../../context/cartContext';
+import add from "./add.png";
+import minus from "./minus.png";
+import { CartContext } from "../../context/cartContext";
 
 const Option = styled.div`
   display: flex;
@@ -22,7 +22,7 @@ const OptionName = styled.div`
     font-size: 14px;
     letter-spacing: 2.8px;
 
-    ${(props) => props.hideOnMobile && 'display: none;'}
+    ${(props) => props.hideOnMobile && "display: none;"}
   }
 `;
 
@@ -35,7 +35,7 @@ const Color = styled.div`
   cursor: pointer;
   margin-left: 21px;
   background-color: ${(props) => props.$colorCode};
-  ${(props) => props.$isSelected && 'outline: 1px solid #979797;'}
+  ${(props) => props.$isSelected && "outline: 1px solid #979797;"}
 
   & + & {
     margin-left: 15px;
@@ -45,16 +45,16 @@ const Color = styled.div`
 const Size = styled.div`
   width: 34px;
   height: 34px;
-  background-color: ${(props) => (props.$isSelected ? 'black' : '#ececec')};
-  color: ${(props) => (props.$isSelected ? 'white' : '#3f3a3a')};
+  background-color: ${(props) => (props.$isSelected ? "black" : "#ececec")};
+  color: ${(props) => (props.$isSelected ? "white" : "#3f3a3a")};
   border-radius: 50%;
   font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-left: 22px;
-  cursor: ${(props) => (props.$isDisabled ? ' not-allowed' : 'pointer')};
-  ${(props) => props.$isDisabled && 'opacity: 0.25;'}
+  cursor: ${(props) => (props.$isDisabled ? " not-allowed" : "pointer")};
+  ${(props) => props.$isDisabled && "opacity: 0.25;"}
 
   & + & {
     margin-left: 20px;
@@ -123,36 +123,80 @@ function ProductVariants({ product }) {
     product.colors[0].code
   );
   const [selectedSize, setSelectedSize] = useState();
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(0);
   const { cartItems, setCartItems } = useContext(CartContext);
 
   function getStock(colorCode, size) {
-    return product.variants.find(
+    const stock = product.variants.find(
       (variant) => variant.color_code === colorCode && variant.size === size
     ).stock;
+    return stock;
   }
+
+  function getCartItemNum(colorCode, size) {
+    const cartQty = cartItems.find(
+      (item) => item.color.code === colorCode && item.size === size
+    );
+
+    if (cartQty) {
+      return cartQty.qty;
+    }
+    return 0;
+  }
+
+  function getPurchaseQtyLimit(colorCode, size) {
+    const purchaseNumLimit =
+      getStock(colorCode, size) - getCartItemNum(colorCode, size);
+    return purchaseNumLimit;
+  }
+
+  const existingItem = cartItems.find(
+    (item) =>
+      item.id === product.id &&
+      item.color.code === selectedColorCode &&
+      item.size === selectedSize
+  );
 
   function addToCart() {
     if (!selectedSize) {
-      window.alert('請選擇尺寸');
+      window.alert("請選擇尺寸");
       return;
     }
 
-    const newCartItems = [
-      ...cartItems,
-      {
-        color: product.colors.find((color) => color.code === selectedColorCode),
-        id: product.id,
-        image: product.main_image,
-        name: product.title,
-        price: product.price,
-        qty: quantity,
-        size: selectedSize,
-        stock: getStock(selectedColorCode, selectedSize),
-      },
-    ];
-    setCartItems(newCartItems);
-    window.alert('已加入商品');
+    if (existingItem) {
+      const updatedCartItems = cartItems.map((item) => {
+        if (item === existingItem) {
+          return {
+            ...item,
+            qty: item.qty + quantity,
+          };
+        } else {
+          return item;
+        }
+      });
+      setCartItems(updatedCartItems);
+    } else {
+      const newCartItems = [
+        ...cartItems,
+        {
+          color: product.colors.find(
+            (color) => color.code === selectedColorCode
+          ),
+          id: product.id,
+          image: product.main_image,
+          name: product.title,
+          price: product.price,
+          qty: quantity,
+          size: selectedSize,
+          stock: getStock(selectedColorCode, selectedSize),
+        },
+      ];
+      setCartItems(newCartItems);
+      window.alert("已加入商品");
+    }
+    setSelectedColorCode(product.colors[0].code);
+    setSelectedSize();
+    setQuantity(0);
   }
   return (
     <>
@@ -166,7 +210,7 @@ function ProductVariants({ product }) {
             onClick={() => {
               setSelectedColorCode(color.code);
               setSelectedSize();
-              setQuantity(1);
+              setQuantity(0);
             }}
           />
         ))}
@@ -179,12 +223,12 @@ function ProductVariants({ product }) {
             <Size
               key={size}
               $isSelected={size === selectedSize}
-              $isDisabled={stock === 0}
+              $isDisabled={stock === 0 || !selectedColorCode}
               onClick={() => {
                 const stock = getStock(selectedColorCode, size);
                 if (stock === 0) return;
                 setSelectedSize(size);
-                if (stock < quantity) setQuantity(1);
+                if (stock < quantity) setQuantity(0);
               }}
             >
               {size}
@@ -204,15 +248,24 @@ function ProductVariants({ product }) {
           <Quantity>{quantity}</Quantity>
           <IncrementButton
             onClick={() => {
-              const stock = getStock(selectedColorCode, selectedSize);
+              const stock = getPurchaseQtyLimit(
+                selectedColorCode,
+                selectedSize
+              );
               if (!selectedSize || quantity === stock) return;
               setQuantity(quantity + 1);
+              getCartItemNum(selectedColorCode, selectedSize);
             }}
           />
         </QuantitySelector>
       </Option>
-      <AddToCart onClick={addToCart}>
-        {selectedSize ? '加入購物車' : '請選擇尺寸'}
+      <AddToCart
+        onClick={() => {
+          addToCart();
+          setQuantity(0);
+        }}
+      >
+        {selectedSize ? "加入購物車" : "請選擇尺寸"}
       </AddToCart>
     </>
   );

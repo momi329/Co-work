@@ -1,8 +1,8 @@
-import { useContext } from 'react';
-import styled from 'styled-components';
+import { useContext } from "react";
+import styled from "styled-components";
 
-import trash from './trash.png';
-import { CartContext } from '../../context/cartContext';
+import trash from "./trash.png";
+import { CartContext } from "../../context/cartContext";
 
 const Header = styled.div`
   display: flex;
@@ -22,7 +22,7 @@ const Quantity = styled.div`
   padding-left: 20px;
 
   @media screen and (max-width: 1279px) {
-    ${(props) => props.hideOnMobile && 'display: none;'}
+    ${(props) => props.hideOnMobile && "display: none;"}
   }
 `;
 
@@ -31,7 +31,7 @@ const UnitPrice = styled.div`
   padding-left: 12px;
 
   @media screen and (max-width: 1279px) {
-    ${(props) => props.hideOnMobile && 'display: none;'}
+    ${(props) => props.hideOnMobile && "display: none;"}
   }
 `;
 
@@ -40,7 +40,7 @@ const Price = styled.div`
   padding-left: 15px;
 
   @media screen and (max-width: 1279px) {
-    ${(props) => props.hideOnMobile && 'display: none;'}
+    ${(props) => props.hideOnMobile && "display: none;"}
   }
 `;
 
@@ -51,6 +51,7 @@ const Empty = styled.div`
 const Items = styled.div`
   padding: 40px 30px;
   margin-top: 16px;
+  margin-bottom: 40px;
   border: solid 1px #979797;
 
   @media screen and (max-width: 1279px) {
@@ -127,7 +128,7 @@ const ItemQuantity = styled.div`
 `;
 
 const ItemQuantityName = styled.div`
-  ${(props) => props.hideOnDesktop && 'display: none;'}
+  ${(props) => props.hideOnDesktop && "display: none;"}
 
   @media screen and (max-width: 1279px) {
     display: block;
@@ -159,7 +160,7 @@ const ItemUnitPrice = styled.div`
 `;
 
 const ItemUnitPriceName = styled.div`
-  ${(props) => props.hideOnDesktop && 'display: none;'}
+  ${(props) => props.hideOnDesktop && "display: none;"}
 
   @media screen and (max-width: 1279px) {
     display: block;
@@ -184,7 +185,7 @@ const ItemPrice = styled.div`
 `;
 
 const ItemPriceName = styled.div`
-  ${(props) => props.hideOnDesktop && 'display: none;'}
+  ${(props) => props.hideOnDesktop && "display: none;"}
 
   @media screen and (max-width: 1279px) {
     display: block;
@@ -223,13 +224,13 @@ function Cart() {
         : item
     );
     setCartItems(newCartItems);
-    window.alert('已修改數量');
+    window.alert("已修改數量");
   }
 
   function deleteItem(itemIndex) {
     const newCartItems = cartItems.filter((_, index) => index !== itemIndex);
     setCartItems(newCartItems);
-    window.alert('已刪除商品');
+    window.alert("已刪除商品");
   }
 
   return (
